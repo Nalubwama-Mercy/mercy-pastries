@@ -1,10 +1,8 @@
-# Hi am Abdul Swabul (github@abdul-swabul-kimbowa-hub), Kisubi Airlines website is a PHP + MySQL flight booking system designed to run on XAMPP, featuring a modern glassmorphism UI with a user side for searching flights, booking, managing bookings, timetable, and baggage information. It also includes a secure admin dashboard for managing flights, bookings, users, and reports, giving full control to edit content and monitor operations.
+I am Nalubwama Mercy, a student at Unik University, and I developed Mercy Pastries - a complete dynamic bakery management system that allows customers to browse products, place orders, and manage their profiles online, while providing administrators with full control over inventory, orders, and content through a secure admin panel.
 
-# 
+The system works by using PHP and MySQL to store all data, with a responsive frontend built on Bootstrap, allowing users to register, add items to cart, checkout, and receive order confirmations, while administrators can manage everything from products and categories to customer messages and site settings through an intuitive dashboard interface.
 
-# \## Project Description
 
-# A web-based FLIGHT MANAGEMENT system with user authentication using PHP and MySQL. Users can register, login, and access a secure dashboard.
 
 # 
 
@@ -44,7 +42,7 @@
 
 # 1\. Open phpMyAdmin
 
-# 2\. Create a new database named 'kisubi\_airlines'
+# 2\. Create a new database named 'mercy_pastries_db'
 
 # 3\. Click on 'Import' tab
 
@@ -56,11 +54,11 @@
 
 # \##Admin log in credentials
 
-# admin@kisubi.test-email
+# admin@mercypastries.com
 
-# admin123-password
+# password-password
 
-# 25DSIT0135\_\_KISUBI\_FLIGHT\_SERVICES.git"## Version 1.0"
+# 25bsit0243\_\_mercy pastries.git"## Version 1.0"
 
 "Released on: $(date)"
 
