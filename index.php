@@ -6,40 +6,35 @@ $database = new Database();
 $db = $database->getConnection();
 
 // Get current user if logged in
+$host = 'localhost';
+$db   = 'mercy_pastries_db';   // your actual database name
+$user = 'root';
+$pass = '';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+// Fetch products with category name using JOIN (recommended)
+$sql = "SELECT p.*, c.name AS category_name 
+        FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id 
+        WHERE p.is_active = 1 
+        ORDER BY p.created_at DESC";
+
+$stmt = $pdo->query($sql);
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $current_user = null;
 if (isset($_SESSION['user_id'])) {
-    $query = "SELECT * FROM users WHERE id = ?";
-    $stmt = $db->prepare($query);
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $current_user = $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
-$sql = "SELECT * FROM products ORDER BY created_at ";
-$stmt = $db->prepare($sql);
-$stmt->execute();
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-if (!$products) {
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $products[] = $row;
-        echo '<div  class="col-md-4">
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="' . htmlspecialchars($row['image_url']) . '" alt="' . htmlspecialchars($row['name']) . '">
-                    </div>
-                    <div class="product-info">
-                        <span class="product-category">' . htmlspecialchars($row['category']) . '</span>
-                        <h5>' . htmlspecialchars($row['name']) . '</h5>
-                        <div class="product-price">UGX ' . number_format($row['price'], 0) . '</div>
-                    </div>
-                </div>
-            </div>';
-    }
-}else{
-    echo "Products not found.";
-}
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -539,78 +534,56 @@ if (!$products) {
 <section class="py-5" id="products">
     <div class="container">
         <h2 class="section-title">Our Signature Treats</h2>
+        
         <div class="row g-4">
-            <!-- Product 1 -->
-            <div class="col-md-4">
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Chocolate Cake">
-                    </div>
-                    <div class="product-info">
-                        <span class="product-category">Cakes</span>
-                        <h5>Classic Chocolate Cake</h5>
-                        <div class="product-price">UGX 95,000</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 2 -->
-            <div class="col-md-4">
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Croissant">
-                    </div>
-                    <div class="product-info">
-                        <span class="product-category">Pastries</span>
-                        <h5>Buttery Croissant</h5>
-                        <div class="product-price">UGX 9,000</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 3 -->
-            <div class="col-md-4">
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1550617931-eb3a88e84519?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Donuts">
-                    </div>
-                    <div class="product-info">
-                        <span class="product-category">Donuts</span>
-                        <h5>Assorted Donuts (6pcs)</h5>
-                        <div class="product-price">UGX 48,000</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+            <?php if (count($products) > 0): ?>
+                <?php foreach($products as $product): ?>
+                    <div class="col-md-4">   <!-- Change to col-md-6 if you want 2 per row -->
+                        <div class="product-card">
+                            <div class="product-image">
+                                <?php 
+                                $img = !empty($product['image']) 
+                                    ? htmlspecialchars($product['image']) 
+                                    : 'https://via.placeholder.com/300x300?text=No+Image';
+                                ?>
+                                <img src="<?= $img ?>" 
+                                     alt="<?= htmlspecialchars($product['name']) ?>">
+                            </div>
+                            
+                            <div class="product-info">
+                                <!-- Category -->
+                                <span class="product-category">
+                                    <?= htmlspecialchars($product['category_name'] ?? 'Uncategorized') ?>
+                                </span>
+                                
+                                <!-- Product Name -->
+                                <h5><?= htmlspecialchars($product['name']) ?></h5>
+                                
+                                <!-- Price Logic: Show sale price if available -->
+                                <div class="product-price">
+                                    <?php if (!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
+                                        <span style="text-decoration: line-through; color: #999; font-size: 0.9em;">
+                                            UGX <?= number_format($product['price']) ?>
+                                        </span><br>
+                                        <strong>UGX <?= number_format($product['sale_price']) ?></strong>
+                                    <?php else: ?>
+                                        UGX <?= number_format($product['price']) ?>
+                                    <?php endif; ?>
+                                </div>
 
-<!-- About Section -->
-<section class="about-section" id="about">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <img src="https://images.unsplash.com/photo-1550617931-eb3a88e84519?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80" alt="About Us" class="img-fluid rounded-3 shadow">
-            </div>
-            <div class="col-lg-6">
-                <h2 class="section-title text-start">Our Story</h2>
-                <p class="lead mb-4">Founded in 2018, Mercy Pastries began with a simple dream: to bring joy to every occasion through delicious, beautifully crafted baked goods.</p>
-                <p>What started as a small home kitchen operation has grown into one of Kampala's most beloved bakeries. We've maintained our commitment to quality, using only the finest ingredients and traditional baking techniques combined with creative innovation.</p>
-                <div class="row mt-5">
-                    <div class="col-4 text-center">
-                        <h3>5+</h3>
-                        <p>Years</p>
+                                <!-- Optional: Short description -->
+                                <?php if (!empty($product['description'])): ?>
+                                    <p class="product-desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                                        <?= substr(htmlspecialchars($product['description']), 0, 80) ?>...
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-4 text-center">
-                        <h3>1000+</h3>
-                        <p>Customers</p>
-                    </div>
-                    <div class="col-4 text-center">
-                        <h3>50+</h3>
-                        <p>Recipes</p>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No products found.</p>
+            <?php endif; ?>
         </div>
     </div>
 </section>
