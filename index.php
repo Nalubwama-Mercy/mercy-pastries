@@ -13,6 +13,32 @@ if (isset($_SESSION['user_id'])) {
     $stmt->execute([$_SESSION['user_id']]);
     $current_user = $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+$sql = "SELECT * FROM products ORDER BY created_at ";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if (!$products) {
+    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $products[] = $row;
+        echo '<div  class="col-md-4">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="' . htmlspecialchars($row['image_url']) . '" alt="' . htmlspecialchars($row['name']) . '">
+                    </div>
+                    <div class="product-info">
+                        <span class="product-category">' . htmlspecialchars($row['category']) . '</span>
+                        <h5>' . htmlspecialchars($row['name']) . '</h5>
+                        <div class="product-price">UGX ' . number_format($row['price'], 0) . '</div>
+                    </div>
+                </div>
+            </div>';
+    }
+}else{
+    echo "Products not found.";
+}
+
 ?>
 
 <!DOCTYPE html>
